@@ -9,8 +9,15 @@
 <body>
     <div class="container">
         <header>
-            <h1>🎯 My Fun Task Tracker</h1>
-            <p>Get things done with style!</p>
+            <div class="header-top">
+                <div>
+                    <h1>🎯 My Fun Task Tracker</h1>
+                    <p>Get things done with style!</p>
+                </div>
+                <button id="themeToggle" class="theme-toggle" title="Switch theme">
+                    <span id="themeIcon">🌙</span>
+                </button>
+            </div>
         </header>
 
         <div class="add-task-section">
@@ -30,6 +37,16 @@
             <div class="stat">
                 <span class="stat-number" id="streakCount">0</span>
                 <span class="stat-label">Day Streak</span>
+            </div>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-header">
+                <span>Progress</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
             </div>
         </div>
 
