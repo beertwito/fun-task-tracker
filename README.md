@@ -4,7 +4,7 @@ A beautiful, feature-rich task management application built with vanilla JavaScr
 
 ## 🌐 Live Demo
 
-**Try it now:** [https://beertwito.github.io/learning-git/](https://beertwito.github.io/learning-git/)
+**Try it now:** [https://beertwito.github.io/fun-task-tracker/](https://beertwito.github.io/fun-task-tracker/)
 
 ## ✨ Features
 
@@ -54,8 +54,8 @@ A beautiful, feature-rich task management application built with vanilla JavaScr
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/beertwito/learning-git.git
-   cd learning-git
+   git clone https://github.com/beertwito/fun-task-tracker.git
+   cd fun-task-tracker
    ```
 
 2. **Open in browser:**
@@ -110,7 +110,7 @@ This project demonstrates professional development practices:
 ## 📦 Project Structure
 
 ```
-learning-git/
+fun-task-tracker/
 ├── index.html          # Main application HTML
 ├── style.css           # Comprehensive styling with themes
 ├── script.js           # Task management logic
