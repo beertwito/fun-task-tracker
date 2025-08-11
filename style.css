@@ -458,12 +458,66 @@ kbd {
     font-size: 1.1em;
 }
 
+.footer {
+    margin-top: 50px;
+    padding: 30px 0;
+    text-align: center;
+    color: white;
+    opacity: 0.8;
+}
+
+.footer p {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.footer a {
+    color: white;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+
+.footer a:hover {
+    border-bottom-color: white;
+    opacity: 1;
+}
+
+body.dark-theme .footer {
+    color: #bbb;
+}
+
+body.dark-theme .footer a {
+    color: #bbb;
+}
+
 @media (max-width: 600px) {
     .add-task-section {
         flex-direction: column;
     }
     
+    .task-input-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .task-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .tasks-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
     header h1 {
         font-size: 2em;
+    }
+    
+    .footer {
+        margin-top: 30px;
+        padding: 20px 0;
     }
 }
