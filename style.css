@@ -9,6 +9,35 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     color: #333;
+    transition: all 0.3s ease;
+}
+
+body.dark-theme {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    color: #ecf0f1;
+}
+
+body.dark-theme .add-task-section,
+body.dark-theme .stat,
+body.dark-theme .tasks-container,
+body.dark-theme .progress-section {
+    background: #34495e;
+    color: #ecf0f1;
+}
+
+body.dark-theme .task-item {
+    background: #2c3e50;
+    color: #ecf0f1;
+}
+
+body.dark-theme #taskInput {
+    background: #2c3e50;
+    color: #ecf0f1;
+    border-color: #4a6741;
+}
+
+body.dark-theme #taskInput:focus {
+    border-color: #3498db;
 }
 
 .container {
@@ -18,9 +47,35 @@ body {
 }
 
 header {
-    text-align: center;
     margin-bottom: 30px;
     color: white;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+}
+
+.theme-toggle {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(180deg);
+}
+
+.theme-toggle span {
+    font-size: 1.5em;
 }
 
 header h1 {
@@ -102,6 +157,55 @@ header p {
     margin-top: 5px;
 }
 
+.progress-section {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.progress-bar {
+    background: #e1e5e9;
+    border-radius: 10px;
+    height: 20px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-fill {
+    background: linear-gradient(45deg, #4CAF50, #81C784);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
 .tasks-container {
     background: white;
     border-radius: 15px;
@@ -136,6 +240,49 @@ header p {
 .task-item.completed {
     opacity: 0.7;
     text-decoration: line-through;
+    animation: completeTask 0.6s ease-in-out;
+    background: linear-gradient(45deg, #4CAF50, #81C784) !important;
+    color: white;
+}
+
+.task-item.completed .task-text {
+    color: white;
+}
+
+@keyframes completeTask {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); background: #4CAF50; }
+    100% { transform: scale(1); }
+}
+
+@keyframes slideInFromRight {
+    0% { 
+        transform: translateX(100px); 
+        opacity: 0; 
+    }
+    100% { 
+        transform: translateX(0); 
+        opacity: 1; 
+    }
+}
+
+.task-item {
+    animation: slideInFromRight 0.3s ease-out;
+}
+
+.task-item.removing {
+    animation: slideOut 0.3s ease-in-out forwards;
+}
+
+@keyframes slideOut {
+    0% { 
+        transform: translateX(0) scale(1); 
+        opacity: 1; 
+    }
+    100% { 
+        transform: translateX(-100px) scale(0.8); 
+        opacity: 0; 
+    }
 }
 
 .task-checkbox {
