@@ -21,6 +21,10 @@ class TaskTracker {
         this.themeIcon = document.getElementById('themeIcon');
         this.progressFill = document.getElementById('progressFill');
         this.progressPercent = document.getElementById('progressPercent');
+        this.categorySelect = document.getElementById('categorySelect');
+        this.prioritySelect = document.getElementById('prioritySelect');
+        this.filterSelect = document.getElementById('filterSelect');
+        this.exportBtn = document.getElementById('exportBtn');
     }
 
     attachEventListeners() {
@@ -29,6 +33,11 @@ class TaskTracker {
             if (e.key === 'Enter') this.addTask();
         });
         this.themeToggle.addEventListener('click', () => this.toggleTheme());
+        this.filterSelect.addEventListener('change', () => this.filterTasks());
+        this.exportBtn.addEventListener('click', () => this.exportTasks());
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
     }
 
     addTask() {
@@ -39,6 +48,8 @@ class TaskTracker {
             id: Date.now(),
             text: text,
             completed: false,
+            category: this.categorySelect.value,
+            priority: this.prioritySelect.value,
             createdAt: new Date().toISOString()
         };
 
@@ -85,7 +96,9 @@ class TaskTracker {
     }
 
     render() {
-        if (this.tasks.length === 0) {
+        const filteredTasks = this.getFilteredTasks();
+        
+        if (filteredTasks.length === 0) {
             this.taskList.style.display = 'none';
             this.emptyState.style.display = 'block';
             return;
@@ -94,24 +107,58 @@ class TaskTracker {
         this.taskList.style.display = 'block';
         this.emptyState.style.display = 'none';
 
-        this.taskList.innerHTML = this.tasks.map(task => `
-            <li class="task-item ${task.completed ? 'completed' : ''}">
-                <input 
-                    type="checkbox" 
-                    class="task-checkbox" 
-                    ${task.completed ? 'checked' : ''}
-                    onchange="taskTracker.toggleTask(${task.id})"
-                >
-                <span class="task-text">${this.escapeHtml(task.text)}</span>
-                <button 
-                    class="task-delete" 
-                    onclick="taskTracker.deleteTask(${task.id})"
-                    title="Delete task"
-                >
-                    Delete
-                </button>
-            </li>
-        `).join('');
+        // Sort tasks by priority (high -> medium -> low) then by creation date
+        const sortedTasks = filteredTasks.sort((a, b) => {
+            const priorityOrder = { high: 3, medium: 2, low: 1 };
+            const aPriority = priorityOrder[a.priority] || 2;
+            const bPriority = priorityOrder[b.priority] || 2;
+            
+            if (aPriority !== bPriority) {
+                return bPriority - aPriority; // Higher priority first
+            }
+            return new Date(b.createdAt) - new Date(a.createdAt); // Newer first
+        });
+
+        this.taskList.innerHTML = sortedTasks.map(task => {
+            const categoryIcons = {
+                personal: '🏠',
+                work: '💼',
+                health: '🏃',
+                learning: '📚'
+            };
+            
+            const priorityLabels = {
+                high: '🔥 High',
+                medium: '📋 Normal',
+                low: '📝 Low'
+            };
+
+            return `
+                <li class="task-item ${task.completed ? 'completed' : ''} priority-${task.priority || 'medium'}">
+                    <input 
+                        type="checkbox" 
+                        class="task-checkbox" 
+                        ${task.completed ? 'checked' : ''}
+                        onchange="taskTracker.toggleTask(${task.id})"
+                    >
+                    <div class="task-content">
+                        <span class="task-text">${this.escapeHtml(task.text)}</span>
+                        <div class="task-meta">
+                            <span class="task-category">${categoryIcons[task.category] || '🏠'} ${task.category || 'personal'}</span>
+                            <span class="task-priority ${task.priority || 'medium'}">${priorityLabels[task.priority] || '📋 Normal'}</span>
+                            <span class="task-date">${this.formatDate(task.createdAt)}</span>
+                        </div>
+                    </div>
+                    <button 
+                        class="task-delete" 
+                        onclick="taskTracker.deleteTask(${task.id})"
+                        title="Delete task"
+                    >
+                        Delete
+                    </button>
+                </li>
+            `;
+        }).join('');
     }
 
     updateStats() {
@@ -130,15 +177,41 @@ class TaskTracker {
     }
 
     calculateStreak() {
-        // Simple streak calculation - count consecutive days with completed tasks
-        const today = new Date().toDateString();
-        const completedToday = this.tasks.some(t => 
-            t.completed && 
-            t.completedAt && 
-            new Date(t.completedAt).toDateString() === today
-        );
+        // Enhanced streak calculation
+        const completedTasks = this.tasks.filter(t => t.completed && t.completedAt);
+        if (completedTasks.length === 0) return 0;
         
-        return completedToday ? 1 : 0; // We'll enhance this in later phases
+        // Group by date
+        const tasksByDate = {};
+        completedTasks.forEach(task => {
+            const date = new Date(task.completedAt).toDateString();
+            if (!tasksByDate[date]) tasksByDate[date] = 0;
+            tasksByDate[date]++;
+        });
+        
+        const dates = Object.keys(tasksByDate).sort((a, b) => new Date(b) - new Date(a));
+        let streak = 0;
+        const today = new Date().toDateString();
+        
+        // Check if there are tasks completed today or yesterday
+        if (dates[0] === today || (dates[0] === new Date(Date.now() - 86400000).toDateString())) {
+            streak = 1;
+            
+            // Count consecutive days
+            for (let i = 1; i < dates.length; i++) {
+                const currentDate = new Date(dates[i-1]);
+                const nextDate = new Date(dates[i]);
+                const dayDiff = (currentDate - nextDate) / (1000 * 60 * 60 * 24);
+                
+                if (dayDiff === 1) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+        }
+        
+        return streak;
     }
 
     escapeHtml(text) {
@@ -218,6 +291,114 @@ class TaskTracker {
         
         document.body.appendChild(celebration);
         setTimeout(() => document.body.removeChild(celebration), 600);
+    }
+
+    getFilteredTasks() {
+        const filter = this.filterSelect.value;
+        
+        if (filter === 'all') return this.tasks;
+        if (filter === 'pending') return this.tasks.filter(t => !t.completed);
+        if (filter === 'completed') return this.tasks.filter(t => t.completed);
+        if (filter === 'high') return this.tasks.filter(t => t.priority === 'high');
+        
+        // Category filters
+        return this.tasks.filter(t => t.category === filter);
+    }
+
+    filterTasks() {
+        this.render();
+    }
+
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        const today = new Date();
+        const diffTime = today - date;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        return date.toLocaleDateString();
+    }
+
+    handleKeyboardShortcuts(e) {
+        // Only trigger shortcuts if not typing in input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        
+        if (e.ctrlKey && e.key.toLowerCase() === 'n') {
+            e.preventDefault();
+            this.taskInput.focus();
+        }
+        
+        if (e.ctrlKey && e.key.toLowerCase() === 'e') {
+            e.preventDefault();
+            this.exportTasks();
+        }
+        
+        if (e.key === 'Escape') {
+            this.taskInput.blur();
+        }
+    }
+
+    exportTasks() {
+        const data = {
+            tasks: this.tasks,
+            exportDate: new Date().toISOString(),
+            stats: {
+                total: this.tasks.length,
+                completed: this.tasks.filter(t => t.completed).length,
+                streak: this.calculateStreak()
+            }
+        };
+
+        // Create downloadable JSON file
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tasks-export-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        // Show success message
+        this.showExportSuccess();
+    }
+
+    showExportSuccess() {
+        const message = document.createElement('div');
+        message.innerHTML = '✅ Tasks exported successfully!';
+        message.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        // Add animation if not already added
+        if (!document.querySelector('#export-style')) {
+            const style = document.createElement('style');
+            style.id = 'export-style';
+            style.textContent = `
+                @keyframes slideInRight {
+                    0% { transform: translateX(100%); opacity: 0; }
+                    100% { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(message);
+        setTimeout(() => {
+            message.style.animation = 'slideInRight 0.3s ease-out reverse';
+            setTimeout(() => document.body.removeChild(message), 300);
+        }, 3000);
     }
 }
 
